@@ -1,0 +1,16 @@
+.styled-table {
+    background: #fccb90;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .table-header {
+    background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+    font-weight: bold;
+    color: white;
+  }
+  
+  .table-row:hover {
+    background-color: #f7f7f7;
+  }
+  
