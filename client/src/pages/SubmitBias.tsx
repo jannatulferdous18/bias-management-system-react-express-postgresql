@@ -41,8 +41,13 @@ const SubmitBias: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          ...formData,
-          submittedBy: user.user_id 
+          biasType: formData.biasType,
+          biasSource: formData.biasSource,
+          description: formData.description,
+          severity: formData.severity,
+          affectedGroups: formData.affectedGroups,
+          submittedBy: user.user_id, 
+          mitigationStrategies: formData.mitigationStrategies
         }),
       });
 

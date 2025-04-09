@@ -60,18 +60,33 @@ app.post('/login', async (req, res) => {
   });
  
   app.post('/api/biases', async (req, res) => {
-    const { biasType, biasSource, description, severity, affectedGroups, submittedBy, mitigationStrategies } = req.body;
+    const {
+      biasType,
+      biasSource,
+      description,
+      severity,
+      affectedGroups,
+      submittedBy,
+      mitigationStrategies
+    } = req.body;
+  
     try {
+      console.log("Incoming data:", req.body); 
+  
       await db.query(
-        'INSERT INTO pending_biases (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by, m_strategy_description) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        `INSERT INTO pending_biases 
+         (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by, m_strategy_description)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [biasType, biasSource, description, severity, affectedGroups, submittedBy, mitigationStrategies]
       );
+  
       res.status(201).json({ success: true, message: 'Bias submitted for review' });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, message: 'Submission failed' });
+      console.error("🔥 Submission error:", err); 
+      res.status(500).json({ success: false, message: 'Submission failed', error: err.message });
     }
   });
+  
 
   app.get('/api/biases', async (req, res) => {
     const { search = '', severity = '', type = '' } = req.query;
@@ -268,6 +283,7 @@ app.get('/api/users', async (req, res) => {
         COUNT(b.bias_id) AS submission_count
       FROM users u
       LEFT JOIN biases b ON u.user_id = b.submitted_by
+      WHERE LOWER(u.user_name) != 'admin'
       GROUP BY u.user_id
       ORDER BY u.user_id ASC
     `);
