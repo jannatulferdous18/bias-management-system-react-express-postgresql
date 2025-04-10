@@ -446,6 +446,26 @@ app.put("/admin/biases/:id", async (req, res) => {
   }
 });
 
+// DELETE bias by ID (Admin only)
+app.delete("/admin/biases/:id", async (req, res) => {
+  const biasId = req.params.id;
+
+  try {
+    // First delete the mitigation strategy (to satisfy FK constraints)
+    await db.query("DELETE FROM mitigation_strategies WHERE bias_id = $1", [
+      biasId,
+    ]);
+
+    // Then delete the bias
+    await db.query("DELETE FROM biases WHERE bias_id = $1", [biasId]);
+
+    res.json({ success: true, message: "Bias deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting bias:", err);
+    res.status(500).json({ success: false, message: "Deletion failed." });
+  }
+});
+
 app.listen(4000, () => {
   console.log("Server running on http://localhost:4000");
 });
