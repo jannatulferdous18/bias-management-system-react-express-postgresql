@@ -38,7 +38,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
               size="sm"
               onClick={() => navigate("/admin-submit")}
             >
-              Submit Bias
+              Add Bias
             </MDBBtn>
           </MDBNavbarItem>
           <MDBNavbarItem>

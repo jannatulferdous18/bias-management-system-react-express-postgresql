@@ -9,7 +9,6 @@ import {
 } from "mdb-react-ui-kit";
 import AdminNavBar from "../components/AdminNavBar.tsx";
 import { useAuth } from "../context/AuthContext.tsx";
-import Footer from "../components/Footer.tsx";
 import PageLayout from "../layouts/PageLayout.tsx";
 
 const AdminSubmitBias: React.FC = () => {
@@ -88,7 +87,7 @@ const AdminSubmitBias: React.FC = () => {
             }}
           >
             <MDBCardBody>
-              <h4 className="mb-4 text-center">Admin: Submit a New Bias</h4>
+              <h4 className="mb-4 text-center">Add a New Bias</h4>
               <form onSubmit={handleSubmit}>
                 <MDBInput
                   className="mb-4"

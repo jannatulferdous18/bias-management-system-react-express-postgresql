@@ -5,9 +5,9 @@ import {
   MDBTableHead,
   MDBTableBody,
   MDBBtn,
-  MDBSpinner
+  MDBSpinner,
 } from "mdb-react-ui-kit";
-import { useAuth } from '../context/AuthContext.tsx';
+import { useAuth } from "../context/AuthContext.tsx";
 import AdminNavBar from "../components/AdminNavBar.tsx";
 import PageLayout from "../layouts/PageLayout.tsx";
 
@@ -24,7 +24,7 @@ interface PendingBias {
 
 const AdminRequests: React.FC = () => {
   const { user } = useAuth();
-  const username = user?.user_name || '';
+  const username = user?.user_name || "";
   const [pendingBiases, setPendingBiases] = useState<PendingBias[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,8 +70,8 @@ const AdminRequests: React.FC = () => {
     <PageLayout>
       <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
         <AdminNavBar username={username} />
-        <MDBContainer className="py-5" style={{ backgroundColor: '#fccb90'}}>
-          <h2 className="mb-4 text-center">Pending Bias Submissions</h2>
+        <MDBContainer className="py-5" style={{ backgroundColor: "#fccb90" }}>
+          <h2 className="mb-4 text-center">Pending Bias Requests</h2>
 
           {loading ? (
             <div className="text-center">
@@ -83,7 +83,13 @@ const AdminRequests: React.FC = () => {
             <p className="text-center">No pending submissions.</p>
           ) : (
             <MDBTable align="middle" responsive bordered small>
-              <MDBTableHead style={{ background: 'linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)', color: 'white' }}>
+              <MDBTableHead
+                style={{
+                  background:
+                    "linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)",
+                  color: "white",
+                }}
+              >
                 <tr>
                   <th>Type</th>
                   <th>Source</th>
@@ -109,14 +115,18 @@ const AdminRequests: React.FC = () => {
                       <MDBBtn
                         color="success"
                         size="sm"
-                        onClick={() => handleAction(bias.bias_request_id, "approve")}
+                        onClick={() =>
+                          handleAction(bias.bias_request_id, "approve")
+                        }
                       >
                         Approve
                       </MDBBtn>
                       <MDBBtn
                         color="danger"
                         size="sm"
-                        onClick={() => handleAction(bias.bias_request_id, "decline")}
+                        onClick={() =>
+                          handleAction(bias.bias_request_id, "decline")
+                        }
                       >
                         Decline
                       </MDBBtn>

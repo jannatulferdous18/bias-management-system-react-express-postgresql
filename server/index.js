@@ -99,7 +99,7 @@ app.post("/api/biases", async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO pending_biases 
+      `INSERT INTO pending_bias_requests 
          (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by, m_strategy_description)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
@@ -176,7 +176,7 @@ app.get("/admin/pending-biases", async (req, res) => {
           pb.affected_groups,
           pb.m_strategy_description,
           u.user_name AS submitted_by
-        FROM pending_biases pb
+        FROM pending_bias_requests pb
         LEFT JOIN users u ON pb.submitted_by = u.user_id
       `);
 
@@ -195,7 +195,7 @@ app.post("/admin/approve-bias", async (req, res) => {
   try {
     // Get pending bias
     const result = await db.query(
-      "SELECT * FROM pending_biases WHERE bias_request_id = $1",
+      "SELECT * FROM pending_bias_requests WHERE bias_request_id = $1",
       [id]
     );
     const bias = result.rows[0];
@@ -243,9 +243,10 @@ app.post("/admin/approve-bias", async (req, res) => {
     );
 
     // Delete from pending
-    await db.query("DELETE FROM pending_biases WHERE bias_request_id = $1", [
-      id,
-    ]);
+    await db.query(
+      "DELETE FROM pending_bias_requests WHERE bias_request_id = $1",
+      [id]
+    );
 
     res.json({
       success: true,
@@ -263,9 +264,10 @@ app.post("/admin/decline-bias", async (req, res) => {
   console.log("Received decline request for ID:", id);
 
   try {
-    await db.query("DELETE FROM pending_biases WHERE bias_request_id = $1", [
-      id,
-    ]);
+    await db.query(
+      "DELETE FROM pending_bias_requests WHERE bias_request_id = $1",
+      [id]
+    );
     res.json({ success: true, message: "Bias declined" });
   } catch (err) {
     console.error("Error in /admin/decline-bias:", err);
