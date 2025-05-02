@@ -1,58 +1,72 @@
-import React from 'react';
+import React from "react";
 import {
   MDBTable,
   MDBTableHead,
   MDBTableBody,
-  MDBBadge
-} from 'mdb-react-ui-kit';
-import '../styles/BiasTable.css';
+  MDBBadge,
+} from "mdb-react-ui-kit";
+import "../styles/SearchBias.css";
 
 export interface Bias {
   bias_id: number;
   bias_type: string;
-  bias_source: string;
-  bias_description: string;
-  severity_score: string;
-  affected_groups: string;
-  submitted_by: string;
-  m_strategy_description: string;
+  severity: string;
+  type: string;
+  domain: string;
+  dataset_version?: string;
 }
 
 interface BiasTableProps {
   biases: Bias[];
+  onRowClick?: (biasId: number) => void;
 }
 
-const BiasTable: React.FC<BiasTableProps> = ({ biases }) => {
+const BiasTable: React.FC<BiasTableProps> = ({ biases, onRowClick }) => {
   return (
-    <MDBTable align='middle' responsive bordered small hover className="styled-table">
+    <MDBTable
+      align="middle"
+      responsive
+      bordered
+      small
+      hover
+      className="styled-table"
+    >
       <MDBTableHead>
         <tr className="table-header">
-          <th>Type</th>
-          <th>Source</th>
-          <th>Description</th>
+          <th>Bias ID</th>
+          <th>Bias Type</th>
           <th>Severity</th>
-          <th>Affected Groups</th>
-          <th>Mitigation Strategy</th>
-          <th>Submitted By</th>
+          <th>Affected Component</th>
+          <th>Domain</th>
         </tr>
       </MDBTableHead>
+
       <MDBTableBody>
         {biases.map((bias) => (
-          <tr key={bias.bias_id} className="table-row">
+          <tr
+            key={bias.bias_id}
+            className="table-row"
+            style={{ cursor: "pointer" }}
+            onClick={() => onRowClick?.(bias.bias_id)}
+          >
+            <td>{bias.bias_id ? `AIBID${bias.bias_id}` : "—"}</td>
             <td>{bias.bias_type}</td>
-            <td>{bias.bias_source}</td>
-            <td>{bias.bias_description}</td>
             <td>
-              <MDBBadge color={
-                bias.severity_score === 'High' ? 'danger' :
-                bias.severity_score === 'Critical' ? 'success' : 'success'
-              } pill>
-                {bias.severity_score}
+              <MDBBadge
+                color={
+                  bias.severity === "High"
+                    ? "danger"
+                    : bias.severity === "Medium"
+                    ? "warning"
+                    : "success"
+                }
+                pill
+              >
+                {bias.severity}
               </MDBBadge>
             </td>
-            <td>{bias.affected_groups}</td>
-            <td>{bias.m_strategy_description}</td>
-            <td>{bias.submitted_by}</td>
+            <td>{bias.type}</td>
+            <td>{bias.domain}</td>
           </tr>
         ))}
       </MDBTableBody>

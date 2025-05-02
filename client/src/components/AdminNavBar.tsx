@@ -19,13 +19,27 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
     navigate("/");
   };
 
+  // Common button style
+  const buttonStyle = {
+    backgroundColor: "transparent",
+    color: "white",
+    border: "1px solid white",
+    borderRadius: "8px",
+    padding: "6px 12px",
+  };
+
   return (
-    <MDBNavbar expand="lg" light bgColor="light" className="mb-4 shadow-sm">
+    <MDBNavbar
+      dark
+      style={{ backgroundColor: "#54b4d3" }}
+      expand="lg"
+      className="mb-4"
+    >
       <MDBContainer fluid>
         <MDBNavbarNav className="d-flex flex-row gap-2">
           <MDBNavbarItem>
             <MDBBtn
-              color="success"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/admin")}
             >
@@ -34,7 +48,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="primary"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/admin-submit")}
             >
@@ -43,7 +57,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="info"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/admin-search")}
             >
@@ -52,7 +66,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="dark"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/user-list")}
             >
@@ -61,7 +75,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="light"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/remove-bias")}
             >
@@ -70,7 +84,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="warning"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/update-bias")}
             >
@@ -79,7 +93,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
           </MDBNavbarItem>
           <MDBNavbarItem>
             <MDBBtn
-              color="secondary"
+              style={buttonStyle}
               size="sm"
               onClick={() => navigate("/admin-requests")}
             >
@@ -87,7 +101,7 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
             </MDBBtn>
           </MDBNavbarItem>
           <MDBNavbarItem>
-            <MDBBtn color="danger" size="sm" onClick={handleLogout}>
+            <MDBBtn style={buttonStyle} size="sm" onClick={handleLogout}>
               Logout
             </MDBBtn>
           </MDBNavbarItem>

@@ -4,27 +4,25 @@ import {
   MDBTable,
   MDBTableHead,
   MDBTableBody,
-  MDBBtn,
   MDBSpinner,
 } from "mdb-react-ui-kit";
 import { useAuth } from "../context/AuthContext.tsx";
 import AdminNavBar from "../components/AdminNavBar.tsx";
 import PageLayout from "../layouts/PageLayout.tsx";
+import { useNavigate } from "react-router-dom";
 
 interface PendingBias {
-  bias_request_id: number;
+  request_id: number;
   bias_type: string;
-  bias_source: string;
-  bias_description: string;
-  severity_score: string;
-  affected_groups: string;
-  submitted_by: string;
-  m_strategy_description: string;
+  severity: string;
+  type: string;
+  domain: string;
 }
 
 const AdminRequests: React.FC = () => {
   const { user } = useAuth();
   const username = user?.user_name || "";
+  const navigate = useNavigate();
   const [pendingBiases, setPendingBiases] = useState<PendingBias[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,24 +40,8 @@ const AdminRequests: React.FC = () => {
     }
   };
 
-  const handleAction = async (id: number, action: "approve" | "decline") => {
-    const endpoint = `http://localhost:4000/admin/${action}-bias`;
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        alert(result.message);
-        setPendingBiases((prev) =>
-          prev.filter((bias) => bias.bias_request_id !== id)
-        );
-      }
-    } catch (err) {
-      console.error(`${action} failed:`, err);
-    }
+  const handleRowClick = (requestId: number) => {
+    navigate(`/admin/pending/${requestId}`);
   };
 
   useEffect(() => {
@@ -70,7 +52,7 @@ const AdminRequests: React.FC = () => {
     <PageLayout>
       <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
         <AdminNavBar username={username} />
-        <MDBContainer className="py-5" style={{ backgroundColor: "#fccb90" }}>
+        <MDBContainer className="py-5">
           <h2 className="mb-4 text-center">Pending Bias Requests</h2>
 
           {loading ? (
@@ -82,55 +64,29 @@ const AdminRequests: React.FC = () => {
           ) : pendingBiases.length === 0 ? (
             <p className="text-center">No pending submissions.</p>
           ) : (
-            <MDBTable align="middle" responsive bordered small>
-              <MDBTableHead
-                style={{
-                  background:
-                    "linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)",
-                  color: "white",
-                }}
-              >
+            <MDBTable align="middle" responsive bordered small hover>
+              <MDBTableHead style={{ color: "black" }}>
                 <tr>
-                  <th>Type</th>
-                  <th>Source</th>
-                  <th>Description</th>
+                  <th>Bias ID</th>
+                  <th>Bias Type</th>
                   <th>Severity</th>
-                  <th>Affected Groups</th>
-                  <th>Mitigation Strategy</th>
-                  <th>Submitted By</th>
-                  <th>Actions</th>
+                  <th>Type</th>
+                  <th>Domain</th>
                 </tr>
               </MDBTableHead>
+
               <MDBTableBody>
                 {pendingBiases.map((bias) => (
-                  <tr key={bias.bias_request_id}>
+                  <tr
+                    key={bias.request_id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleRowClick(bias.request_id)}
+                  >
+                    <td>AIBID{bias.request_id}</td>
                     <td>{bias.bias_type}</td>
-                    <td>{bias.bias_source}</td>
-                    <td>{bias.bias_description}</td>
-                    <td>{bias.severity_score}</td>
-                    <td>{bias.affected_groups}</td>
-                    <td>{bias.m_strategy_description}</td>
-                    <td>{bias.submitted_by}</td>
-                    <td className="d-flex gap-2">
-                      <MDBBtn
-                        color="success"
-                        size="sm"
-                        onClick={() =>
-                          handleAction(bias.bias_request_id, "approve")
-                        }
-                      >
-                        Approve
-                      </MDBBtn>
-                      <MDBBtn
-                        color="danger"
-                        size="sm"
-                        onClick={() =>
-                          handleAction(bias.bias_request_id, "decline")
-                        }
-                      >
-                        Decline
-                      </MDBBtn>
-                    </td>
+                    <td>{bias.severity}</td>
+                    <td>{bias.type}</td>
+                    <td>{bias.domain}</td>
                   </tr>
                 ))}
               </MDBTableBody>

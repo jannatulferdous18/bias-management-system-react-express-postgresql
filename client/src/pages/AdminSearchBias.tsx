@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   MDBContainer,
-  MDBInput,
-  MDBDropdown,
-  MDBDropdownMenu,
-  MDBDropdownToggle,
-  MDBDropdownItem,
   MDBPagination,
   MDBPaginationItem,
   MDBPaginationLink,
-} from 'mdb-react-ui-kit';
-import AdminNavBar from '../components/AdminNavBar.tsx';
-import { useAuth } from '../context/AuthContext.tsx';
-import BiasTable, { Bias } from '../components/BiasTable.tsx';
-import '../styles/SearchBias.css';
-import PageLayout from '../layouts/PageLayout.tsx';
+} from "mdb-react-ui-kit";
+import AdminNavBar from "../components/AdminNavBar.tsx";
+import { useAuth } from "../context/AuthContext.tsx";
+import BiasTable, { Bias } from "../components/BiasTable.tsx";
+import "../styles/SearchBias.css";
+import PageLayout from "../layouts/PageLayout.tsx";
+import { useNavigate } from "react-router-dom";
+import BiasFilterBar from "../components/BiasFilterBar.tsx";
 
 const AdminSearchBias: React.FC = () => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [biases, setBiases] = useState<Bias[]>([]);
-  const [severityFilter, setSeverityFilter] = useState<string>('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [severityFilter, setSeverityFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [componentTypeFilter, setComponentTypeFilter] = useState<string>("");
   const [biasTypes, setBiasTypes] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 15;
+  const navigate = useNavigate();
+
+  const handleRowClick = (biasId: number) => {
+    navigate(`/admin/bias/${biasId}`);
+  };
 
   useEffect(() => {
     const fetchBiases = async () => {
@@ -32,31 +35,36 @@ const AdminSearchBias: React.FC = () => {
         const res = await fetch(
           `http://localhost:4000/api/biases?search=${encodeURIComponent(
             searchTerm
-          )}&severity=${encodeURIComponent(severityFilter)}&type=${encodeURIComponent(typeFilter)}`
+          )}&severity=${encodeURIComponent(
+            severityFilter
+          )}&biasType=${encodeURIComponent(
+            typeFilter
+          )}&componentType=${encodeURIComponent(componentTypeFilter)}`
         );
+
         const data = await res.json();
         if (data.success) {
           setBiases(data.biases);
           setCurrentPage(1);
         }
       } catch (error) {
-        console.error('Error fetching biases:', error);
+        console.error("Error fetching biases:", error);
       }
     };
 
     fetchBiases();
-  }, [searchTerm, severityFilter, typeFilter]);
+  }, [searchTerm, severityFilter, typeFilter, componentTypeFilter]);
 
   useEffect(() => {
     const fetchTypes = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/bias-types');
+        const res = await fetch("http://localhost:4000/api/bias-types");
         const data = await res.json();
         if (data.success) {
           setBiasTypes(data.types);
         }
       } catch (err) {
-        console.error('Failed to fetch bias types:', err);
+        console.error("Failed to fetch bias types:", err);
       }
     };
 
@@ -69,59 +77,43 @@ const AdminSearchBias: React.FC = () => {
 
   return (
     <PageLayout>
-      <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-        <AdminNavBar username={user?.user_name || ''} />
+      <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+        <AdminNavBar username={user?.user_name || ""} />
         <MDBContainer className="py-4">
-          <div className="d-flex flex-column gap-3 mb-3">
-            <MDBInput
-              label="Search Biases"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ maxWidth: '300px' }}
-              className="search-box"
-            />
+          <BiasFilterBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            severityFilter={severityFilter}
+            setSeverityFilter={setSeverityFilter}
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            biasTypes={biasTypes}
+            componentTypeFilter={componentTypeFilter}
+            setComponentTypeFilter={setComponentTypeFilter}
+            clearFilters={() => {
+              setSearchTerm("");
+              setSeverityFilter("");
+              setTypeFilter("");
+              setComponentTypeFilter("");
+            }}
+          />
 
-            <div className="d-flex gap-3">
-              <MDBDropdown>
-                <MDBDropdownToggle color="secondary">Filter: Severity</MDBDropdownToggle>
-                <MDBDropdownMenu>
-                  <MDBDropdownItem link onClick={() => setSeverityFilter('')}>All</MDBDropdownItem>
-                  <MDBDropdownItem link onClick={() => setSeverityFilter('High')}>High</MDBDropdownItem>
-                  <MDBDropdownItem link onClick={() => setSeverityFilter('Medium')}>Medium</MDBDropdownItem>
-                  <MDBDropdownItem link onClick={() => setSeverityFilter('Critical')}>Critical</MDBDropdownItem>
-                </MDBDropdownMenu>
-              </MDBDropdown>
+          <BiasTable biases={currentBiases} onRowClick={handleRowClick} />
 
-              <MDBDropdown>
-                <MDBDropdownToggle color="info">Filter: Type</MDBDropdownToggle>
-                <MDBDropdownMenu>
-                  <>
-                      <MDBDropdownItem link onClick={() => setTypeFilter('')}>
-                      All
-                      </MDBDropdownItem>
-
-                      {biasTypes.map((type) => (
-                      <MDBDropdownItem key={type} link onClick={() => setTypeFilter(type)}>
-                          {type}
-                      </MDBDropdownItem>
-                      ))}
-                  </>
-              </MDBDropdownMenu>
-              </MDBDropdown>
-            </div>
-          </div>
-
-          <BiasTable biases={currentBiases} />
-
-          <MDBPagination className="mb-0 justify-content-center mt-4">
-            {[...Array(totalPages)].map((_, i) => (
-              <MDBPaginationItem key={i} active={i + 1 === currentPage}>
-                <MDBPaginationLink href="#" onClick={() => setCurrentPage(i + 1)}>
-                  {i + 1}
-                </MDBPaginationLink>
-              </MDBPaginationItem>
-            ))}
-          </MDBPagination>
+          {biases.length > 0 && (
+            <MDBPagination className="mb-0 justify-content-center mt-4">
+              {[...Array(totalPages)].map((_, i) => (
+                <MDBPaginationItem key={i} active={i + 1 === currentPage}>
+                  <MDBPaginationLink
+                    href="#"
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </MDBPaginationLink>
+                </MDBPaginationItem>
+              ))}
+            </MDBPagination>
+          )}
         </MDBContainer>
       </div>
     </PageLayout>

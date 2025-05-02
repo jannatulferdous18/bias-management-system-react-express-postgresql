@@ -74,23 +74,42 @@ app.post("/register", async (req, res) => {
 
 app.post("/api/biases", async (req, res) => {
   const {
-    biasType,
-    biasSource,
+    type, // 'Dataset' or 'Algorithm'
+    name,
+    domain,
     description,
+    biasType,
+    biasIdentification,
     severity,
-    affectedGroups,
-    submittedBy,
     mitigationStrategies,
+    submittedBy,
+    version,
+    publishedDate,
+    size,
+    format,
+    biasVersionRange,
+    technique,
   } = req.body;
+
+  // Convert to snake_case for DB
+  const bias_type = biasType;
+  const bias_identification = biasIdentification || null;
+  const mitigation_strategies = mitigationStrategies;
+  const submitted_by = submittedBy;
+  const dataset_version = version || null;
+  const published_date = publishedDate || null;
+  const bias_version_range = biasVersionRange || null;
 
   try {
     console.log("Incoming data:", req.body);
 
-    // Check for duplicate in main `biases` table
+    // Check for duplicates
     const checkDuplicate = await db.query(
-      `SELECT * FROM biases WHERE bias_type = $1 AND bias_source = $2 AND bias_description = $3`,
-      [biasType, biasSource, description]
+      `SELECT * FROM biases 
+       WHERE type = $1 AND name = $2 AND description = $3 AND bias_type = $4`,
+      [type, name, description, bias_type]
     );
+
     if (checkDuplicate.rows.length > 0) {
       return res.status(409).json({
         success: false,
@@ -98,26 +117,41 @@ app.post("/api/biases", async (req, res) => {
       });
     }
 
+    // Insert new bias
     await db.query(
-      `INSERT INTO pending_bias_requests 
-         (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by, m_strategy_description)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      `INSERT INTO pending_request (
+        type, name, domain, description, bias_type, severity, mitigation_strategies,
+        submitted_by, dataset_version, published_date, size, format, bias_version_range,
+        technique, bias_identification
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12, $13,
+        $14, $15
+      )`,
       [
-        biasType,
-        biasSource,
+        type,
+        name,
+        domain,
         description,
+        bias_type,
         severity,
-        affectedGroups,
-        submittedBy,
-        mitigationStrategies,
+        mitigation_strategies,
+        submitted_by,
+        dataset_version,
+        published_date,
+        size,
+        format,
+        bias_version_range,
+        technique,
+        bias_identification,
       ]
     );
 
     res
       .status(201)
-      .json({ success: true, message: "Bias submitted for review" });
+      .json({ success: true, message: "Bias submitted successfully" });
   } catch (err) {
-    console.error("🔥 Submission error:", err);
+    console.error("Submission error:", err);
     res.status(500).json({
       success: false,
       message: "Submission failed",
@@ -127,34 +161,49 @@ app.post("/api/biases", async (req, res) => {
 });
 
 app.get("/api/biases", async (req, res) => {
-  const { search = "", severity = "", type = "" } = req.query;
+  const {
+    search = "",
+    severity = "",
+    biasType = "",
+    componentType = "",
+  } = req.query;
 
   try {
     const result = await db.query(
       `
         SELECT 
           b.bias_id,
+          b.type,
+          b.name,
+          b.domain,
+          b.description,
           b.bias_type,
-          b.bias_source,
-          b.bias_description,
-          b.severity_score,
-          b.affected_groups,
+          b.severity,
+          ms.strategy_description AS mitigation_strategy, 
           u.user_name AS submitted_by,
-          ms.m_strategy_description
+          b.dataset_version,
+          b.published_date,
+          b.size,
+          b.format,
+          b.bias_version_range,
+          b.technique,
+          b.bias_identification,
+          b.created_at
         FROM biases b
         LEFT JOIN users u ON b.submitted_by = u.user_id
-        LEFT JOIN mitigation_strategies ms ON b.bias_id = ms.bias_id  -- 🔥 ensure correct join
+        LEFT JOIN mitigation_strategy ms ON b.mitigation_id = ms.mitigation_id
         WHERE 
-          (LOWER(b.bias_type) LIKE LOWER($1) OR
-           LOWER(b.bias_source) LIKE LOWER($1) OR
-           LOWER(b.bias_description) LIKE LOWER($1) OR
-           LOWER(b.affected_groups) LIKE LOWER($1) OR
+          (LOWER(b.name) LIKE LOWER($1) OR
+           LOWER(b.domain) LIKE LOWER($1) OR
+           LOWER(b.description) LIKE LOWER($1) OR
+           LOWER(b.bias_type) LIKE LOWER($1) OR
            LOWER(u.user_name) LIKE LOWER($1))
-          AND ($2 = '' OR LOWER(b.severity_score) = LOWER($2))
+          AND ($2 = '' OR LOWER(b.severity) = LOWER($2))
           AND ($3 = '' OR LOWER(b.bias_type) = LOWER($3))
+          AND ($4 = '' OR LOWER(b.type) = LOWER($4))
         ORDER BY b.bias_id DESC
       `,
-      [`%${search}%`, severity, type]
+      [`%${search}%`, severity, biasType, componentType]
     );
 
     res.json({ success: true, biases: result.rows });
@@ -167,111 +216,128 @@ app.get("/api/biases", async (req, res) => {
 app.get("/admin/pending-biases", async (req, res) => {
   try {
     const result = await db.query(`
-        SELECT 
-          pb.bias_request_id,
-          pb.bias_type,
-          pb.bias_source,
-          pb.bias_description,
-          pb.severity_score,
-          pb.affected_groups,
-          pb.m_strategy_description,
-          u.user_name AS submitted_by
-        FROM pending_bias_requests pb
-        LEFT JOIN users u ON pb.submitted_by = u.user_id
-      `);
+      SELECT 
+        pr.request_id,
+        pr.bias_type,
+        pr.severity,
+        pr.type,
+        pr.domain
+      FROM pending_request pr
+      LEFT JOIN users u ON pr.submitted_by = u.user_id
+    `);
 
     res.json({ success: true, biases: result.rows });
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ success: false, message: "Could not fetch pending biases" });
+    res.status(500).json({
+      success: false,
+      message: "Could not fetch pending biases",
+    });
   }
 });
 
 // Approve bias
 app.post("/admin/approve-bias", async (req, res) => {
   const { id } = req.body;
+
   try {
-    // Get pending bias
-    const result = await db.query(
-      "SELECT * FROM pending_bias_requests WHERE bias_request_id = $1",
+    const { rows } = await db.query(
+      `SELECT * FROM pending_request WHERE request_id = $1`,
       [id]
     );
-    const bias = result.rows[0];
 
-    if (!bias) {
+    if (rows.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "Bias not found" });
+        .json({ success: false, message: "Request not found" });
     }
 
-    // Insert into biases
-    const insertBiasRes = await db.query(
-      `INSERT INTO biases 
-          (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING bias_id`,
+    const bias = rows[0];
+
+    const {
+      type,
+      name,
+      domain,
+      description,
+      bias_type,
+      severity,
+      submitted_by,
+      dataset_version,
+      published_date,
+      size,
+      format,
+      bias_version_range,
+      technique,
+      bias_identification,
+      mitigation_strategies,
+    } = bias;
+
+    // STEP 1: Insert the bias (without mitigation_id yet)
+    const biasInsertRes = await db.query(
+      `INSERT INTO biases (
+        type, name, domain, description, bias_type, severity,
+        submitted_by, dataset_version, published_date, size, format,
+        bias_version_range, technique, bias_identification
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11,
+        $12, $13, $14
+      ) RETURNING bias_id`,
       [
-        bias.bias_type,
-        bias.bias_source,
-        bias.bias_description,
-        bias.severity_score,
-        bias.affected_groups,
-        bias.submitted_by,
+        type,
+        name,
+        domain,
+        description,
+        bias_type,
+        severity,
+        submitted_by,
+        dataset_version,
+        published_date,
+        size,
+        format,
+        bias_version_range,
+        technique,
+        bias_identification,
       ]
     );
 
-    const newBiasId = insertBiasRes.rows[0].bias_id;
+    const bias_id = biasInsertRes.rows[0].bias_id;
 
-    // Insert into mitigation_strategies
-    const strategyRes = await db.query(
-      `INSERT INTO mitigation_strategies (bias_id, m_strategy_description)
-         VALUES ($1, $2)
-         RETURNING mitigation_strategy_id`,
-      [newBiasId, bias.m_strategy_description]
+    // STEP 2: Insert mitigation strategy with the newly obtained bias_id
+    const mitigationRes = await db.query(
+      `INSERT INTO mitigation_strategy (bias_id, strategy_description)
+       VALUES ($1, $2) RETURNING mitigation_id`,
+      [bias_id, mitigation_strategies]
     );
 
-    const newStrategyId = strategyRes.rows[0].mitigation_strategy_id;
+    const mitigation_id = mitigationRes.rows[0].mitigation_id;
 
-    // Update biases table with m_strategy_id
-    await db.query(
-      `UPDATE biases 
-         SET m_strategy_id = $1
-         WHERE bias_id = $2`,
-      [newStrategyId, newBiasId]
-    );
+    // STEP 3: Update bias with the mitigation_id
+    await db.query(`UPDATE biases SET mitigation_id = $1 WHERE bias_id = $2`, [
+      mitigation_id,
+      bias_id,
+    ]);
 
-    // Delete from pending
-    await db.query(
-      "DELETE FROM pending_bias_requests WHERE bias_request_id = $1",
-      [id]
-    );
+    // STEP 4: Clean up pending request
+    await db.query(`DELETE FROM pending_request WHERE request_id = $1`, [id]);
 
-    res.json({
-      success: true,
-      message: "Bias approved and linked to mitigation strategy",
-    });
+    res.json({ success: true, message: "Bias approved and added." });
   } catch (err) {
-    console.error("Error in /admin/approve-bias:", err);
-    res.status(500).json({ success: false, message: "Approval failed" });
+    console.error("Error approving bias:", err);
+    res.status(500).json({ success: false, message: "Error approving bias." });
   }
 });
 
 // Decline bias
 app.post("/admin/decline-bias", async (req, res) => {
   const { id } = req.body;
-  console.log("Received decline request for ID:", id);
 
   try {
-    await db.query(
-      "DELETE FROM pending_bias_requests WHERE bias_request_id = $1",
-      [id]
-    );
-    res.json({ success: true, message: "Bias declined" });
+    await db.query(`DELETE FROM pending_request WHERE request_id = $1`, [id]);
+    res.json({ success: true, message: "Bias request declined and removed." });
   } catch (err) {
-    console.error("Error in /admin/decline-bias:", err);
-    res.status(500).json({ success: false, message: "Decline failed" });
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error declining bias." });
   }
 });
 
@@ -290,19 +356,33 @@ app.get("/api/bias-types", async (req, res) => {
 
 app.post("/api/biases/admin", async (req, res) => {
   const {
-    biasType,
-    biasSource,
+    type,
+    name,
+    domain,
     description,
+    biasType,
+    biasIdentification,
     severity,
-    affectedGroups,
-    submittedBy, // this is username
     mitigationStrategies,
+    submittedBy, // now should be user_id
+    version,
+    publishedDate,
+    size,
+    format,
+    biasVersionRange,
+    technique,
   } = req.body;
 
+  const bias_type = biasType;
+  const bias_identification = biasIdentification || null;
+  const dataset_version = version || null;
+  const published_date = publishedDate || null;
+  const bias_version_range = biasVersionRange || null;
+
   try {
-    // Lookup user_id from username
+    // Confirm user exists (optional if frontend is trusted)
     const userResult = await db.query(
-      "SELECT user_id FROM users WHERE user_name = $1",
+      "SELECT user_id FROM users WHERE user_id = $1",
       [submittedBy]
     );
     if (userResult.rows.length === 0) {
@@ -310,38 +390,64 @@ app.post("/api/biases/admin", async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-    const userId = userResult.rows[0].user_id;
 
-    // Check for duplicates
-    const duplicateCheck = await db.query(
-      `SELECT * FROM biases WHERE bias_type = $1 AND bias_source = $2 AND bias_description = $3`,
-      [biasType, biasSource, description]
+    // Check for duplicate
+    const checkDuplicate = await db.query(
+      `SELECT * FROM biases 
+       WHERE type = $1 AND name = $2 AND description = $3 AND bias_type = $4`,
+      [type, name, description, bias_type]
     );
-    if (duplicateCheck.rows.length > 0) {
+
+    if (checkDuplicate.rows.length > 0) {
       return res.status(409).json({
         success: false,
         message: "Bias already exists!",
       });
     }
 
-    // Continue with normal insert
+    // Insert bias
     const biasInsertRes = await db.query(
-      `INSERT INTO biases (bias_type, bias_source, bias_description, severity_score, affected_groups, submitted_by)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING bias_id`,
-      [biasType, biasSource, description, severity, affectedGroups, userId]
+      `INSERT INTO biases (
+        type, name, domain, description, bias_type, severity,
+        submitted_by, dataset_version, published_date, size, format,
+        bias_version_range, technique, bias_identification
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11,
+        $12, $13, $14
+      ) RETURNING bias_id`,
+      [
+        type,
+        name,
+        domain,
+        description,
+        bias_type,
+        severity,
+        submittedBy,
+        dataset_version,
+        published_date,
+        size,
+        format,
+        bias_version_range,
+        technique,
+        bias_identification,
+      ]
     );
+
     const newBiasId = biasInsertRes.rows[0].bias_id;
 
+    // Insert into mitigation_strategy table
     const strategyInsertRes = await db.query(
-      `INSERT INTO mitigation_strategies (bias_id, m_strategy_description)
+      `INSERT INTO mitigation_strategy (bias_id, strategy_description)
        VALUES ($1, $2)
-       RETURNING mitigation_strategy_id`,
+       RETURNING mitigation_id`,
       [newBiasId, mitigationStrategies]
     );
-    const newStrategyId = strategyInsertRes.rows[0].mitigation_strategy_id;
 
-    await db.query(`UPDATE biases SET m_strategy_id = $1 WHERE bias_id = $2`, [
+    const newStrategyId = strategyInsertRes.rows[0].mitigation_id;
+
+    // Update biases table to store FK reference
+    await db.query(`UPDATE biases SET mitigation_id = $1 WHERE bias_id = $2`, [
       newStrategyId,
       newBiasId,
     ]);
@@ -351,7 +457,7 @@ app.post("/api/biases/admin", async (req, res) => {
       message: "Bias submitted successfully",
     });
   } catch (err) {
-    console.error("Error in /api/biases/admin:", err);
+    console.error("Error in /api/biases/admin:", err.stack || err.message);
     res.status(500).json({
       success: false,
       message: "Admin submission failed",
@@ -382,68 +488,92 @@ app.get("/api/users", async (req, res) => {
 app.put("/admin/biases/:id", async (req, res) => {
   const { id } = req.params;
   const {
+    type,
+    name,
+    domain,
+    description,
     bias_type,
-    bias_source,
-    bias_description,
-    severity_score,
-    affected_groups,
-    m_strategy_description,
+    severity,
+    mitigation_strategy,
+    dataset_version,
+    published_date,
+    size,
+    format,
+    bias_version_range,
+    technique,
+    bias_identification,
   } = req.body;
 
   try {
-    // Update main bias fields
+    // Update bias information
     await db.query(
       `UPDATE biases SET 
-        bias_type = $1,
-        bias_source = $2,
-        bias_description = $3,
-        severity_score = $4,
-        affected_groups = $5
-      WHERE bias_id = $6`,
+        type = $1,
+        name = $2,
+        domain = $3,
+        description = $4,
+        bias_type = $5,
+        severity = $6,
+        dataset_version = $7,
+        published_date = $8,
+        size = $9,
+        format = $10,
+        bias_version_range = $11,
+        technique = $12,
+        bias_identification = $13
+      WHERE bias_id = $14`,
       [
+        type,
+        name,
+        domain,
+        description,
         bias_type,
-        bias_source,
-        bias_description,
-        severity_score,
-        affected_groups,
+        severity,
+        dataset_version,
+        published_date,
+        size,
+        format,
+        bias_version_range,
+        technique,
+        bias_identification,
         id,
       ]
     );
 
     // Update mitigation strategy
     const strategyCheck = await db.query(
-      `SELECT mitigation_strategy_id FROM mitigation_strategies WHERE bias_id = $1`,
+      `SELECT mitigation_id FROM mitigation_strategy WHERE bias_id = $1`,
       [id]
     );
 
     if (strategyCheck.rows.length > 0) {
-      // Strategy exists → update
+      // Strategy exists — update
       await db.query(
-        `UPDATE mitigation_strategies 
-         SET m_strategy_description = $1 
+        `UPDATE mitigation_strategy 
+         SET strategy_description = $1 
          WHERE bias_id = $2`,
-        [m_strategy_description, id]
+        [mitigation_strategy, id]
       );
     } else {
-      // Strategy does not exist → insert new one
+      // Strategy doesn't exist — insert new
       const strategyRes = await db.query(
-        `INSERT INTO mitigation_strategies (bias_id, m_strategy_description)
-         VALUES ($1, $2) RETURNING mitigation_strategy_id`,
-        [id, m_strategy_description]
+        `INSERT INTO mitigation_strategy (bias_id, strategy_description)
+         VALUES ($1, $2) RETURNING mitigation_id`,
+        [id, mitigation_strategy]
       );
 
-      const newStrategyId = strategyRes.rows[0].mitigation_strategy_id;
+      const newMitigationId = strategyRes.rows[0].mitigation_id;
 
-      // Update m_strategy_id in biases table
+      // Link to biases table
       await db.query(
-        `UPDATE biases SET m_strategy_id = $1 WHERE bias_id = $2`,
-        [newStrategyId, id]
+        `UPDATE biases SET mitigation_id = $1 WHERE bias_id = $2`,
+        [newMitigationId, id]
       );
     }
 
     res.json({ success: true, message: "Bias updated successfully." });
   } catch (err) {
-    console.error("Error in /admin/biases/:id:", err);
+    console.error("Error in PUT /admin/biases/:id:", err.stack || err.message);
     res.status(500).json({ success: false, message: "Failed to update bias." });
   }
 });
@@ -453,21 +583,125 @@ app.delete("/admin/biases/:id", async (req, res) => {
   const biasId = req.params.id;
 
   try {
-    // First delete the mitigation strategy (to satisfy FK constraints)
-    await db.query("DELETE FROM mitigation_strategies WHERE bias_id = $1", [
-      biasId,
-    ]);
+    // Step 1: Get mitigation_id from the bias
+    const biasResult = await db.query(
+      "SELECT mitigation_id FROM biases WHERE bias_id = $1",
+      [biasId]
+    );
 
-    // Then delete the bias
+    if (biasResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Bias not found" });
+    }
+
+    const mitigationId = biasResult.rows[0].mitigation_id;
+
+    // Step 2: Delete mitigation strategy if exists
+    if (mitigationId) {
+      await db.query(
+        "DELETE FROM mitigation_strategy WHERE mitigation_id = $1",
+        [mitigationId]
+      );
+    }
+
+    // Step 3: Delete the bias
     await db.query("DELETE FROM biases WHERE bias_id = $1", [biasId]);
 
-    res.json({ success: true, message: "Bias deleted successfully." });
+    res.json({
+      success: true,
+      message: "Bias and mitigation strategy deleted.",
+    });
   } catch (err) {
     console.error("Error deleting bias:", err);
     res.status(500).json({ success: false, message: "Deletion failed." });
   }
 });
 
+// show specific bias
+app.get("/api/biases/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT 
+        b.bias_id,
+        b.type,
+        b.name,
+        b.domain,
+        b.description,
+        b.bias_type,
+        b.severity,
+        ms.strategy_description AS mitigation_strategies,
+        b.submitted_by,
+        u.user_name AS submitted_by_name,
+        b.dataset_version,
+        b.published_date,
+        b.size,
+        b.format,
+        b.bias_version_range,
+        b.technique,
+        b.bias_identification,
+        b.created_at
+      FROM biases b
+      LEFT JOIN users u ON b.submitted_by = u.user_id
+      LEFT JOIN mitigation_strategy ms ON b.mitigation_id = ms.mitigation_id
+      WHERE b.bias_id = $1
+      `,
+      [id]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, bias: result.rows[0] });
+    } else {
+      res.status(404).json({ success: false, message: "Bias not found" });
+    }
+  } catch (err) {
+    console.error("Error fetching bias by ID:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 app.listen(4000, () => {
   console.log("Server running on http://localhost:4000");
+});
+
+app.get("/admin/pending-bias/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT 
+        pr.request_id,
+        pr.bias_type,
+        pr.type,
+        pr.domain,
+        pr.name,
+        pr.description,
+        pr.severity,
+        pr.technique,
+        pr.bias_identification,
+        pr.mitigation_strategies,
+        pr.created_at,
+        u.user_name AS submitted_by
+      FROM pending_request pr
+      LEFT JOIN users u ON pr.submitted_by = u.user_id
+      WHERE pr.request_id = $1
+      `,
+      [id]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, bias: result.rows[0] });
+    } else {
+      res
+        .status(404)
+        .json({ success: false, message: "Pending Bias not found" });
+    }
+  } catch (err) {
+    console.error("Error fetching pending bias by ID:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
