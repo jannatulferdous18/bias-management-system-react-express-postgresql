@@ -5,6 +5,7 @@ import {
   MDBTableHead,
   MDBTableBody,
   MDBSpinner,
+  MDBBadge,
 } from "mdb-react-ui-kit";
 import { useAuth } from "../context/AuthContext.tsx";
 import AdminNavBar from "../components/AdminNavBar.tsx";
@@ -84,7 +85,20 @@ const AdminRequests: React.FC = () => {
                   >
                     <td>AIBID{bias.request_id}</td>
                     <td>{bias.bias_type}</td>
-                    <td>{bias.severity}</td>
+                    <td>
+                      <MDBBadge
+                        color={
+                          bias.severity === "High"
+                            ? "danger"
+                            : bias.severity === "Medium"
+                            ? "warning"
+                            : "success"
+                        }
+                        pill
+                      >
+                        {bias.severity}
+                      </MDBBadge>
+                    </td>
                     <td>{bias.type}</td>
                     <td>{bias.domain}</td>
                   </tr>
