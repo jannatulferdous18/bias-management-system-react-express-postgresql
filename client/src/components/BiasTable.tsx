@@ -13,7 +13,7 @@ export interface Bias {
   severity: string;
   type: string;
   domain: string;
-  dataset_version?: string;
+  dataset_algorithm_version?: string;
 }
 
 interface BiasTableProps {

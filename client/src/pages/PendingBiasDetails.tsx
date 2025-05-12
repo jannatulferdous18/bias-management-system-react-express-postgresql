@@ -25,7 +25,7 @@ interface PendingBias {
   severity: string;
   technique?: string;
   bias_identification?: string;
-  dataset_version?: string;
+  dataset_algorithm_version?: string;
   published_date?: string;
   size?: string;
   format?: string;
@@ -33,6 +33,8 @@ interface PendingBias {
   mitigation_strategies: string;
   submitted_by: string;
   created_at: string;
+  key_characteristic?: string;
+  reference?: string;
 }
 
 const PendingBiasDetail: React.FC = () => {
@@ -119,62 +121,64 @@ const PendingBiasDetail: React.FC = () => {
           <MDBCol md="6">
             <div className="border p-3 rounded bg-light">
               <strong>Bias Type:</strong> {bias.bias_type} <br />
-              <strong>Affected Component:</strong> {bias.type} <br />
-              <strong>Affected Component Name:</strong> {bias.name || "—"}{" "}
-              <br />
+              {bias.bias_version_range && (
+                <>
+                  <strong>Bias Version Range:</strong> {bias.bias_version_range}
+                  <br />
+                </>
+              )}{" "}
+              <strong>Severity:</strong>{" "}
+              <MDBBadge color={severityColor}>{bias.severity}</MDBBadge> <br />
+              <strong>Reference:</strong> {bias.reference} <br />
             </div>
           </MDBCol>
 
           <MDBCol md="6">
             <div className="border p-3 rounded bg-light">
-              <strong>Severity:</strong>{" "}
-              <MDBBadge color={severityColor}>{bias.severity}</MDBBadge> <br />
-              <strong>Domain:</strong> {bias.domain} <br />
-              {bias.type === "Algorithm" && (
+              <strong>Affected Source:</strong> {bias.type} <br />
+              <strong>Affected {bias.type} Name:</strong> {bias.name || "—"}{" "}
+              <br />
+              {bias.dataset_algorithm_version && (
                 <>
-                  {bias.technique && (
-                    <>
-                      <strong>Technique:</strong> {bias.technique} <br />
-                    </>
-                  )}
-                  {bias.bias_identification && (
-                    <>
-                      <strong>Bias Identification:</strong>{" "}
-                      {bias.bias_identification} <br />
-                    </>
-                  )}
+                  <strong>Version:</strong> {bias.dataset_algorithm_version}
+                  <br />
                 </>
               )}
-              {bias.type === "Dataset" && (
+              <strong>Domain:</strong> {bias.domain} <br />
+              {bias.size && (
                 <>
-                  {bias.dataset_version && (
-                    <>
-                      <strong>Dataset Version:</strong> {bias.dataset_version}{" "}
-                      <br />
-                    </>
-                  )}
-                  {bias.published_date && (
-                    <>
-                      <strong>Published Date:</strong> {bias.published_date}{" "}
-                      <br />
-                    </>
-                  )}
-                  {bias.size && (
-                    <>
-                      <strong>Size:</strong> {bias.size} <br />
-                    </>
-                  )}
-                  {bias.format && (
-                    <>
-                      <strong>Format:</strong> {bias.format} <br />
-                    </>
-                  )}
-                  {bias.bias_version_range && (
-                    <>
-                      <strong>Bias Version Range:</strong>{" "}
-                      {bias.bias_version_range} <br />
-                    </>
-                  )}
+                  <strong>Size:</strong> {bias.size}
+                  <br />
+                </>
+              )}
+              {bias.format && (
+                <>
+                  <strong>Format:</strong> {bias.format}
+                  <br />
+                </>
+              )}
+              {bias.technique && (
+                <>
+                  <strong>Model Type:</strong> {bias.technique} <br />
+                </>
+              )}
+              {bias.bias_identification && (
+                <>
+                  <strong>Bias Identification:</strong>{" "}
+                  {bias.bias_identification}
+                  <br />
+                </>
+              )}
+              {bias.published_date && (
+                <>
+                  <strong>Published Date:</strong> {bias.published_date}
+                  <br />
+                </>
+              )}
+              {bias.key_characteristic && (
+                <>
+                  <strong>Key Characteristic:</strong> {bias.key_characteristic}
+                  <br />
                 </>
               )}
             </div>

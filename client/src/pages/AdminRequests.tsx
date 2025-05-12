@@ -71,7 +71,7 @@ const AdminRequests: React.FC = () => {
                   <th>Bias ID</th>
                   <th>Bias Type</th>
                   <th>Severity</th>
-                  <th>Type</th>
+                  <th>Source</th>
                   <th>Domain</th>
                 </tr>
               </MDBTableHead>

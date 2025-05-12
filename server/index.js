@@ -89,6 +89,8 @@ app.post("/api/biases", async (req, res) => {
     format,
     biasVersionRange,
     technique,
+    key_characteristic,
+    reference,
   } = req.body;
 
   // Convert to snake_case for DB
@@ -96,7 +98,7 @@ app.post("/api/biases", async (req, res) => {
   const bias_identification = biasIdentification || null;
   const mitigation_strategies = mitigationStrategies;
   const submitted_by = submittedBy;
-  const dataset_version = version || null;
+  const dataset_algorithm_version = version;
   const published_date = publishedDate || null;
   const bias_version_range = biasVersionRange || null;
 
@@ -121,12 +123,12 @@ app.post("/api/biases", async (req, res) => {
     await db.query(
       `INSERT INTO pending_request (
         type, name, domain, description, bias_type, severity, mitigation_strategies,
-        submitted_by, dataset_version, published_date, size, format, bias_version_range,
-        technique, bias_identification
+        submitted_by, dataset_algorithm_version, published_date, size, format, bias_version_range,
+        technique, bias_identification, key_characteristic, reference
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7,
         $8, $9, $10, $11, $12, $13,
-        $14, $15
+        $14, $15, $16, $17
       )`,
       [
         type,
@@ -137,13 +139,15 @@ app.post("/api/biases", async (req, res) => {
         severity,
         mitigation_strategies,
         submitted_by,
-        dataset_version,
+        dataset_algorithm_version,
         published_date,
         size,
         format,
         bias_version_range,
         technique,
         bias_identification,
+        key_characteristic,
+        reference,
       ]
     );
 
@@ -181,13 +185,15 @@ app.get("/api/biases", async (req, res) => {
           b.severity,
           ms.strategy_description AS mitigation_strategy, 
           u.user_name AS submitted_by,
-          b.dataset_version,
+          b.dataset_algorithm_version,
           b.published_date,
           b.size,
           b.format,
           b.bias_version_range,
           b.technique,
           b.bias_identification,
+          b.key_characteristic,
+          b.reference,
           b.created_at
         FROM biases b
         LEFT JOIN users u ON b.submitted_by = u.user_id
@@ -262,10 +268,12 @@ app.post("/admin/approve-bias", async (req, res) => {
       bias_type,
       severity,
       submitted_by,
-      dataset_version,
+      dataset_algorithm_version,
       published_date,
       size,
       format,
+      key_characteristic,
+      reference,
       bias_version_range,
       technique,
       bias_identification,
@@ -276,12 +284,12 @@ app.post("/admin/approve-bias", async (req, res) => {
     const biasInsertRes = await db.query(
       `INSERT INTO biases (
         type, name, domain, description, bias_type, severity,
-        submitted_by, dataset_version, published_date, size, format,
-        bias_version_range, technique, bias_identification
+        submitted_by, dataset_algorithm_version, published_date, size, format,
+        bias_version_range, technique, bias_identification, key_characteristic, reference
       ) VALUES (
         $1, $2, $3, $4, $5, $6,
         $7, $8, $9, $10, $11,
-        $12, $13, $14
+        $12, $13, $14, $15, $16
       ) RETURNING bias_id`,
       [
         type,
@@ -291,13 +299,15 @@ app.post("/admin/approve-bias", async (req, res) => {
         bias_type,
         severity,
         submitted_by,
-        dataset_version,
+        dataset_algorithm_version,
         published_date,
         size,
         format,
         bias_version_range,
         technique,
         bias_identification,
+        key_characteristic,
+        reference,
       ]
     );
 
@@ -371,11 +381,13 @@ app.post("/api/biases/admin", async (req, res) => {
     format,
     biasVersionRange,
     technique,
+    key_characteristic,
+    reference,
   } = req.body;
 
   const bias_type = biasType;
   const bias_identification = biasIdentification || null;
-  const dataset_version = version || null;
+  const dataset_algorithm_version = version;
   const published_date = publishedDate || null;
   const bias_version_range = biasVersionRange || null;
 
@@ -409,12 +421,12 @@ app.post("/api/biases/admin", async (req, res) => {
     const biasInsertRes = await db.query(
       `INSERT INTO biases (
         type, name, domain, description, bias_type, severity,
-        submitted_by, dataset_version, published_date, size, format,
-        bias_version_range, technique, bias_identification
+        submitted_by, dataset_algorithm_version, published_date, size, format,
+        bias_version_range, technique, bias_identification, key_characteristic, reference
       ) VALUES (
         $1, $2, $3, $4, $5, $6,
         $7, $8, $9, $10, $11,
-        $12, $13, $14
+        $12, $13, $14, $15, $16
       ) RETURNING bias_id`,
       [
         type,
@@ -424,13 +436,15 @@ app.post("/api/biases/admin", async (req, res) => {
         bias_type,
         severity,
         submittedBy,
-        dataset_version,
+        dataset_algorithm_version,
         published_date,
         size,
         format,
         bias_version_range,
         technique,
         bias_identification,
+        key_characteristic,
+        reference,
       ]
     );
 
@@ -495,10 +509,12 @@ app.put("/admin/biases/:id", async (req, res) => {
     bias_type,
     severity,
     mitigation_strategy,
-    dataset_version,
+    dataset_algorithm_version,
     published_date,
     size,
     format,
+    key_characteristic,
+    reference,
     bias_version_range,
     technique,
     bias_identification,
@@ -514,14 +530,16 @@ app.put("/admin/biases/:id", async (req, res) => {
         description = $4,
         bias_type = $5,
         severity = $6,
-        dataset_version = $7,
+        dataset_algorithm_version = $7,
         published_date = $8,
         size = $9,
         format = $10,
         bias_version_range = $11,
         technique = $12,
-        bias_identification = $13
-      WHERE bias_id = $14`,
+        bias_identification = $13,
+        key_characteristic = $14,
+        reference = $15
+      WHERE bias_id = $16`,
       [
         type,
         name,
@@ -529,13 +547,15 @@ app.put("/admin/biases/:id", async (req, res) => {
         description,
         bias_type,
         severity,
-        dataset_version,
+        dataset_algorithm_version,
         published_date,
         size,
         format,
         bias_version_range,
         technique,
         bias_identification,
+        key_characteristic,
+        reference,
         id,
       ]
     );
@@ -636,13 +656,15 @@ app.get("/api/biases/:id", async (req, res) => {
         ms.strategy_description AS mitigation_strategies,
         b.submitted_by,
         u.user_name AS submitted_by_name,
-        b.dataset_version,
+        b.dataset_algorithm_version,
         b.published_date,
         b.size,
         b.format,
+        b.key_characteristic,
         b.bias_version_range,
         b.technique,
         b.bias_identification,
+        b.reference,
         b.created_at
       FROM biases b
       LEFT JOIN users u ON b.submitted_by = u.user_id
@@ -678,12 +700,19 @@ app.get("/admin/pending-bias/:id", async (req, res) => {
         pr.bias_type,
         pr.type,
         pr.domain,
+        pr.dataset_algorithm_version,
+        pr.published_date,
+        pr.size,
+        pr.format,
+        pr.key_characteristic,
+        pr.bias_version_range,
         pr.name,
         pr.description,
         pr.severity,
         pr.technique,
         pr.bias_identification,
         pr.mitigation_strategies,
+        pr.reference,
         pr.created_at,
         u.user_name AS submitted_by
       FROM pending_request pr

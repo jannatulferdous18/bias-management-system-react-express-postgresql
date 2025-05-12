@@ -56,6 +56,8 @@ const AdminSubmitBias: React.FC = () => {
           format: formData.format,
           biasVersionRange: formData.biasVersionRange,
           technique: formData.technique,
+          key_characteristic: formData.key_characteristic,
+          reference: formData.reference,
         }),
       });
 
@@ -191,6 +193,13 @@ const AdminSubmitBias: React.FC = () => {
             required
           />
           {domainDropdown}
+          <MDBInput
+            className="mb-3"
+            label="Key Characteristic"
+            name="key_characteristic"
+            onChange={handleChange}
+            required
+          />
           <MDBTextArea
             className="mb-3"
             label="Description"
@@ -207,6 +216,13 @@ const AdminSubmitBias: React.FC = () => {
             required
           />
           {formatDropdown}
+          <MDBInput
+            className="mb-3"
+            label="Reference"
+            name="reference"
+            onChange={handleChange}
+            required
+          />
           <MDBInput
             className="mb-3"
             label="Bias Type"
@@ -266,6 +282,13 @@ const AdminSubmitBias: React.FC = () => {
             onChange={handleChange}
             required
           />
+          <MDBInput
+            className="mb-3"
+            label="Algorithm Version"
+            name="version"
+            onChange={handleChange}
+            required
+          />
           {domainDropdown}
           <MDBTextArea
             className="mb-3"
@@ -277,8 +300,15 @@ const AdminSubmitBias: React.FC = () => {
           />
           <MDBInput
             className="mb-3"
-            label="Machine Learning Model / Technique"
+            label="Model Type"
             name="technique"
+            onChange={handleChange}
+            required
+          />{" "}
+          <MDBInput
+            className="mb-3"
+            label="Reference"
+            name="reference"
             onChange={handleChange}
             required
           />
@@ -286,6 +316,13 @@ const AdminSubmitBias: React.FC = () => {
             className="mb-3"
             label="Bias Type"
             name="biasType"
+            onChange={handleChange}
+            required
+          />{" "}
+          <MDBInput
+            className="mb-3"
+            label="Bias Version Range"
+            name="biasVersionRange"
             onChange={handleChange}
             required
           />
@@ -362,7 +399,7 @@ const AdminSubmitBias: React.FC = () => {
               <h4 className="mb-4 text-center">Submit a New Bias</h4>
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                  <label className="form-label">Select Type</label>
+                  <label className="form-label">Select Source</label>
                   <select
                     className="form-select"
                     value={biasType}

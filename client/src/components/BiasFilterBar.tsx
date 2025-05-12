@@ -80,7 +80,7 @@ const BiasFilterBar: React.FC<Props> = ({
       </MDBDropdown>
 
       <MDBDropdown>
-        <MDBDropdownToggle color="primary">Filter: Type</MDBDropdownToggle>
+        <MDBDropdownToggle color="primary">Filter: Source</MDBDropdownToggle>
         <MDBDropdownMenu>
           <MDBDropdownItem link onClick={() => setComponentTypeFilter("")}>
             All

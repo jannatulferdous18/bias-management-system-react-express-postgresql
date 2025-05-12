@@ -30,10 +30,11 @@ interface Bias {
   mitigation_strategy: string; // for UpdateBiasForm
   submitted_by: string;
   submitted_by_name: string;
-  dataset_version: string;
+  dataset_algorithm_version: string;
   published_date: string;
   size: string;
   format: string;
+  key_characteristic: string;
   bias_version_range: string;
   technique: string;
   bias_identification: string;

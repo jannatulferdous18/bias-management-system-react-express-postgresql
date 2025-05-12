@@ -5,8 +5,6 @@ import {
   MDBInput,
   MDBTextArea,
   MDBBtn,
-  MDBRow,
-  MDBCol,
 } from "mdb-react-ui-kit";
 
 interface Bias {
@@ -17,10 +15,12 @@ interface Bias {
   description: string;
   bias_type: string;
   severity: string;
-  dataset_version: string;
+  dataset_algorithm_version: string;
   published_date: string;
   size: string;
   format: string;
+  key_characteristic: string;
+  reference: string;
   bias_version_range: string;
   technique: string;
   bias_identification: string;
@@ -41,10 +41,12 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
     description: bias.description,
     bias_type: bias.bias_type,
     severity: bias.severity,
-    dataset_version: bias.dataset_version,
+    dataset_algorithm_version: bias.dataset_algorithm_version,
     published_date: bias.published_date,
     size: bias.size,
     format: bias.format,
+    key_characteristic: bias.key_characteristic,
+    reference: bias.reference,
     bias_version_range: bias.bias_version_range,
     technique: bias.technique,
     bias_identification: bias.bias_identification,
@@ -156,6 +158,14 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
           onChange={handleChange}
         />
 
+        <MDBInput
+          className="mb-3"
+          label="Version"
+          name="dataset_algorithm_version"
+          value={formData.dataset_algorithm_version}
+          onChange={handleChange}
+        />
+
         <div className="mb-3">
           <label className="form-label">Domain</label>
           <select
@@ -181,23 +191,16 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
           onChange={handleChange}
           rows={3}
         />
+        <MDBTextArea
+          className="mb-3"
+          label="Reference"
+          name="reference"
+          value={formData.reference}
+          onChange={handleChange}
+        />
 
         {formData.type === "Dataset" && (
           <>
-            <MDBInput
-              className="mb-3"
-              label="Dataset Version"
-              name="dataset_version"
-              value={formData.dataset_version}
-              onChange={handleChange}
-            />
-            <MDBInput
-              className="mb-3"
-              label="Published Date"
-              name="published_date"
-              value={formData.published_date}
-              onChange={handleChange}
-            />
             <MDBInput
               className="mb-3"
               label="Size"
@@ -221,13 +224,19 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
                   </option>
                 ))}
               </select>
-            </div>
-
+            </div>{" "}
             <MDBInput
               className="mb-3"
-              label="Bias Version Range"
-              name="bias_version_range"
-              value={formData.bias_version_range}
+              label="Published Date"
+              name="published_date"
+              value={formData.published_date}
+              onChange={handleChange}
+            />
+            <MDBInput
+              className="mb-3"
+              label="Key Characteristic"
+              name="key_characteristic"
+              value={formData.key_characteristic}
               onChange={handleChange}
             />
           </>
@@ -237,7 +246,7 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
           <>
             <MDBInput
               className="mb-3"
-              label="Technique"
+              label="Model Type"
               name="technique"
               value={formData.technique}
               onChange={handleChange}
@@ -257,6 +266,14 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
           label="Bias Type"
           name="bias_type"
           value={formData.bias_type}
+          onChange={handleChange}
+        />
+
+        <MDBInput
+          className="mb-3"
+          label="Bias Version Range"
+          name="bias_version_range"
+          value={formData.bias_version_range}
           onChange={handleChange}
         />
 

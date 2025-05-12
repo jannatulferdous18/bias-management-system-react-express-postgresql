@@ -26,7 +26,7 @@ interface Bias {
   mitigation_strategy: string;
   submitted_by: string;
   submitted_by_name: string;
-  dataset_version: string;
+  dataset_algorithm_version: string;
   published_date: string;
   size: string;
   format: string;
@@ -180,7 +180,7 @@ const RemoveBias: React.FC = () => {
                 <th>Bias Type</th>
                 <th>Domain</th>
                 <th>Severity</th>
-                <th>Strategy</th>
+                <th>Mitigation Strategy</th>
                 <th>Actions</th>
               </tr>
             </MDBTableHead>
