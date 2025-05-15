@@ -32,6 +32,7 @@ interface BiasDetailData {
   bias_identification?: string;
   created_at: string;
   reference: string;
+  occurrence_count: number;
 }
 
 const AdminBiasDetail: React.FC = () => {
@@ -87,10 +88,14 @@ const AdminBiasDetail: React.FC = () => {
                   <br />
                 </>
               )}
-              <strong>Severity:</strong>
+              <strong>Severity: </strong>
               <MDBBadge color={severityColor}>{bias.severity}</MDBBadge> <br />
               <strong>Reference:</strong> {bias.reference} <br />
-              <strong>Occurrence Count:</strong> <br />
+              <strong>Occurrence Count: </strong>
+              <MDBBadge color="danger" pill>
+                {bias.occurrence_count}
+              </MDBBadge>{" "}
+              <br />
             </div>
           </MDBCol>
 

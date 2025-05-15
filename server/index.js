@@ -665,11 +665,15 @@ app.get("/api/biases/:id", async (req, res) => {
         b.technique,
         b.bias_identification,
         b.reference,
-        b.created_at
+        b.created_at,
+        COALESCE(SUM(bo.occurrence_count), 0) AS occurrence_count
       FROM biases b
       LEFT JOIN users u ON b.submitted_by = u.user_id
       LEFT JOIN mitigation_strategy ms ON b.mitigation_id = ms.mitigation_id
+      LEFT JOIN bias_occurrences bo ON b.bias_id = bo.bias_id
       WHERE b.bias_id = $1
+      GROUP BY 
+    b.bias_id, u.user_name, ms.strategy_description
       `,
       [id]
     );
