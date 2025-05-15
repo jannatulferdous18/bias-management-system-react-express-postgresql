@@ -67,7 +67,7 @@ const NavBar: React.FC<{ username: string }> = ({ username }) => {
               style={buttonStyle}
               size="sm"
               onClick={() =>
-                window.open("https://wamflow.vercel.app/homePage", "_blank")
+                window.open("https://wameditor.vercel.app/", "_blank")
               }
             >
               Editor

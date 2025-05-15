@@ -101,6 +101,17 @@ const AdminNavBar: React.FC<{ username: string }> = ({ username }) => {
             </MDBBtn>
           </MDBNavbarItem>
           <MDBNavbarItem>
+            <MDBBtn
+              style={buttonStyle}
+              size="sm"
+              onClick={() =>
+                window.open("https://wameditor.vercel.app/", "_blank")
+              }
+            >
+              Editor
+            </MDBBtn>
+          </MDBNavbarItem>
+          <MDBNavbarItem>
             <MDBBtn style={buttonStyle} size="sm" onClick={handleLogout}>
               Logout
             </MDBBtn>

@@ -11,6 +11,14 @@
 .env.*.local
 server/.env
 client/.env
+# Ignore all .env files in any directory
+**/.env
+
+# Optional: Ignore other common environment config formats
+**/.env.*
+
+# But allow a sample env file if needed for documentation
+!**/.env.example
 
 # Logs
 *.log
