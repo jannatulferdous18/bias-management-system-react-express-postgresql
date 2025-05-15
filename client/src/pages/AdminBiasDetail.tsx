@@ -90,6 +90,7 @@ const AdminBiasDetail: React.FC = () => {
               <strong>Severity:</strong>
               <MDBBadge color={severityColor}>{bias.severity}</MDBBadge> <br />
               <strong>Reference:</strong> {bias.reference} <br />
+              <strong>Occurrence Count:</strong> <br />
             </div>
           </MDBCol>
 
