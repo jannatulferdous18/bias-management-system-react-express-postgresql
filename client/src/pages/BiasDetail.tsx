@@ -72,7 +72,8 @@ const BiasDetail: React.FC = () => {
         <h3 className="mb-3">
           <strong>Bias Details:</strong>{" "}
           <a href="#" style={{ color: "#0d6efd", textDecoration: "none" }}>
-            AIBID{bias.bias_id}
+            AIB-{new Date(bias.created_at).getFullYear()}-
+            {String(bias.bias_id).padStart(4, "0")}
           </a>
         </h3>
 
