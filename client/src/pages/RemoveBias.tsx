@@ -121,7 +121,7 @@ const RemoveBias: React.FC = () => {
     <PageLayout>
       <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
         <AdminNavBar username={username} />
-        <MDBContainer className="py-4">
+        <MDBContainer className="py-4" style={{ minWidth: "1500px" }}>
           <h4 className="mb-3">Remove Bias</h4>
 
           <BiasFilterBar
@@ -176,7 +176,7 @@ const RemoveBias: React.FC = () => {
           >
             <MDBTableHead>
               <tr className="table-header">
-                <th>Bias ID</th>
+                <th style={{ width: "120px" }}>Bias ID</th>
                 <th>Bias Type</th>
                 <th>Domain</th>
                 <th>Severity</th>
@@ -188,7 +188,12 @@ const RemoveBias: React.FC = () => {
             <MDBTableBody>
               {currentBiases.map((bias) => (
                 <tr key={bias.bias_id} className="table-row">
-                  <td>{bias.bias_id ? `AIBID${bias.bias_id}` : "—"}</td>
+                  <td>
+                    {bias.bias_id
+                      ? `AIB-${new Date(bias.created_at).getFullYear()}-
+            ${String(bias.bias_id).padStart(4, "0")}`
+                      : "—"}
+                  </td>
                   <td>{bias.bias_type}</td>
                   <td>{bias.domain}</td>
                   <td>

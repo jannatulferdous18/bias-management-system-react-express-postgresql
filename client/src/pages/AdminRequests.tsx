@@ -68,7 +68,6 @@ const AdminRequests: React.FC = () => {
             <MDBTable align="middle" responsive bordered small hover>
               <MDBTableHead style={{ color: "black" }}>
                 <tr>
-                  <th>Bias ID</th>
                   <th>Bias Type</th>
                   <th>Severity</th>
                   <th>Source</th>
@@ -83,7 +82,6 @@ const AdminRequests: React.FC = () => {
                     style={{ cursor: "pointer" }}
                     onClick={() => handleRowClick(bias.request_id)}
                   >
-                    <td>AIBID{bias.request_id}</td>
                     <td>{bias.bias_type}</td>
                     <td>
                       <MDBBadge

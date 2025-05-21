@@ -38,6 +38,7 @@ interface Bias {
   bias_version_range: string;
   technique: string;
   bias_identification: string;
+  reference: string;
   created_at: string;
 }
 const AdminUpdateBias: React.FC = () => {
@@ -126,7 +127,7 @@ const AdminUpdateBias: React.FC = () => {
     <PageLayout>
       <div style={{ minHeight: "100vh" }}>
         <AdminNavBar username={username} />
-        <MDBContainer className="py-4">
+        <MDBContainer className="py-4" style={{ minWidth: "1500px" }}>
           {!selectedBias ? (
             <>
               <MDBCard className="shadow-4 mb-4">
@@ -162,7 +163,7 @@ const AdminUpdateBias: React.FC = () => {
               >
                 <MDBTableHead>
                   <tr className="table-header">
-                    <th>Bias ID</th>
+                    <th style={{ width: "120px" }}>Bias ID</th>
                     <th>Bias Type</th>
                     <th>Domain</th>
                     <th>Severity</th>
@@ -180,7 +181,12 @@ const AdminUpdateBias: React.FC = () => {
                         navigate(`/admin/update-bias/${bias.bias_id}`)
                       }
                     >
-                      <td>{bias.bias_id ? `AIBID${bias.bias_id}` : "—"}</td>
+                      <td>
+                        {bias.bias_id
+                          ? `AIB-${new Date(bias.created_at).getFullYear()}-
+            ${String(bias.bias_id).padStart(4, "0")}`
+                          : "—"}
+                      </td>
                       <td>{bias.bias_type}</td>
                       <td>{bias.domain}</td>
                       <td>

@@ -111,8 +111,14 @@ const PendingBiasDetail: React.FC = () => {
       <AdminNavBar username={user?.user_name || ""} />
       <MDBContainer className="py-4">
         <h3 className="mb-3">
-          <strong>Bias Details:</strong>{" "}
-          <span style={{ color: "#0d6efd" }}>AIBID{bias.request_id}</span>
+          <strong>Request ID:</strong>{" "}
+          <span style={{ color: "#0d6efd" }}>
+            {bias.request_id
+              ? `AIB-${new Date(bias.created_at).getFullYear()}-${String(
+                  bias.request_id
+                ).padStart(4, "0")}`
+              : "—"}
+          </span>
         </h3>
 
         <p className="mb-4 text-muted">{bias.description}</p>

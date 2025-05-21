@@ -8,6 +8,7 @@ import {
 } from "mdb-react-ui-kit";
 
 interface Bias {
+  created_at: string;
   bias_id: number;
   type: string;
   name: string;
@@ -140,7 +141,14 @@ const UpdateBiasForm: React.FC<Props> = ({ bias, onCancel, onUpdated }) => {
   return (
     <MDBCard className="shadow-4">
       <MDBCardBody>
-        <h4 className="mb-4">Update Bias: AIBID{bias.bias_id}</h4>
+        <h4 className="mb-4">
+          Update Bias:
+          {bias.bias_id
+            ? `AIB-${new Date(bias.created_at).getFullYear()}-${String(
+                bias.bias_id
+              ).padStart(4, "0")}`
+            : "—"}
+        </h4>
 
         <MDBInput
           className="mb-3"
