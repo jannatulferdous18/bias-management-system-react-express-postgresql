@@ -91,7 +91,18 @@ const AdminBiasDetail: React.FC = () => {
               )}
               <strong>Severity: </strong>
               <MDBBadge color={severityColor}>{bias.severity}</MDBBadge> <br />
-              <strong>Reference:</strong> {bias.reference} <br />
+              <strong>Reference:</strong>{" "}
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent(
+                  bias.reference
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#0d6efd" }}
+              >
+                {bias.reference}
+              </a>{" "}
+              <br />
               <strong>Occurrence Count: </strong>
               <MDBBadge color="danger" pill>
                 {bias.occurrence_count}
