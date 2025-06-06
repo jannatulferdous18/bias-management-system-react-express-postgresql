@@ -8,10 +8,7 @@ const Footer: React.FC = () => {
       style={{ width: "100%" }}
     >
       <MDBContainer className="p-4 text-center">
-        <small>
-          © {new Date().getFullYear()} Bias Managements System. All rights
-          reserved.
-        </small>
+        <small>© {new Date().getFullYear()} AIBDB. All rights reserved.</small>
       </MDBContainer>
     </MDBFooter>
   );
